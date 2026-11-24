@@ -41,8 +41,8 @@ jobs:
       - name: Start PostgreSQL and Redis
         run: docker compose up -d --wait postgres redis
 
-      - name: Run migrations in the application image
-        run: docker compose run --rm migrate
+      - name: Run migrations
+        run: uv run alembic upgrade head
 
       - name: Lint
         run: uv run ruff check .
@@ -58,8 +58,8 @@ jobs:
 
       - name: Verify downgrade and upgrade
         run: |
-          docker compose run --rm migrate alembic downgrade base
-          docker compose run --rm migrate alembic upgrade head
+          uv run alembic downgrade base
+          uv run alembic upgrade head
 
       - name: Build runtime image
         run: docker compose build api worker
