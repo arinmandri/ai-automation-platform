@@ -16,6 +16,8 @@ Phase 1은 프로젝트 기반, PostgreSQL 17 스키마, DB 역할/RLS, FastAPI 
 8. `external_call_attempts`를 추가해 승인 소비와 외부 호출 사이 상태를 `PREPARED → SENT → CONFIRMED`로 기록할 수 있게 했습니다.
 9. 예산 예약에 `period_start`, `deduplication_key`, `settlement_key`를 추가하고 reservation당 usage event를 하나로 제한했습니다.
 10. invitations, documents, connection operations와 tenant 복합 FK를 추가했습니다.
+11. Alembic version table은 `public` CREATE 권한을 넓히지 않고 `app_owner` 소유의 `app_meta` schema에 저장합니다.
+12. 초기 DDL script는 SQLAlchemy의 async driver bridge를 통해 asyncpg simple-query protocol로 실행합니다.
 
 ## 승인 소비와 외부 호출 복구 정책
 
@@ -55,14 +57,20 @@ Phase 2 상태 머신에는 다음 전이를 반드시 포함합니다.
 
 ## 검증 결과
 
-이 섹션은 실제 실행 후 결과로 갱신합니다.
+GitHub Actions 실행: <https://github.com/arinmandri/ai-automation-platform/actions/runs/45464434735>
 
-- Ruff: 미실행
-- mypy: 미실행
-- pytest unit: 미실행
-- pytest PostgreSQL integration: 미실행
-- Alembic upgrade/downgrade: 미실행
-- Docker image build: 미실행
+검증 환경은 Ubuntu runner, Python 3.13.18, PostgreSQL 17, Redis 7.4입니다.
+
+- Ruff lint: 통과
+- Ruff format check: 통과
+- mypy strict: 통과
+- pytest: 13 passed, 1 warning, 1.61초
+- coverage: 92.56% (`fail_under=80` 통과)
+- Alembic 초기 upgrade: 통과
+- Alembic downgrade-to-base 후 재-upgrade: 통과
+- API/Worker Docker image build: 통과
+
+남은 warning은 FastAPI/Starlette TestClient가 현재 `httpx` adapter를 deprecated로 표시하는 upstream 경고입니다. 테스트 실패나 runtime 오류는 아니며 의존성 조합이 안정화되면 갱신합니다.
 
 ## 미구현 항목 및 기술 부채
 

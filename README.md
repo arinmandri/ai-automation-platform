@@ -1,5 +1,7 @@
 # Automation Platform
 
+[![CI](https://github.com/arinmandri/ai-automation-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/arinmandri/ai-automation-platform/actions/workflows/ci.yml)
+
 AI 업무 자동화 B2B SaaS의 Phase 1 기반 저장소입니다. 현재 범위는 재현 가능한 개발 환경, PostgreSQL 멀티테넌트 보안, 실행 lease/fencing 기반 함수 및 CI입니다. 인증과 실제 AI 실행 엔진은 아직 포함하지 않습니다.
 
 ## 요구사항
