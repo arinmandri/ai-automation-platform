@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: postgresql+asyncpg://automation_api:local-api-change-me@localhost:5432/automation
+      MIGRATION_DATABASE_URL: postgresql+asyncpg://automation_migrator:local-migrator-change-me@localhost:5432/automation
+      WORKER_DATABASE_URL: postgresql+asyncpg://automation_worker:local-worker-change-me@localhost:5432/automation
+      REDIS_URL: redis://localhost:6379/0
+      TEST_ADMIN_DATABASE_URL: postgresql+asyncpg://postgres:local-admin-change-me@localhost:5432/automation
+      TEST_API_DATABASE_URL: postgresql+asyncpg://automation_api:local-api-change-me@localhost:5432/automation
+      TEST_WORKER_DATABASE_URL: postgresql+asyncpg://automation_worker:local-worker-change-me@localhost:5432/automation
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Install Python
+        run: uv python install 3.13
+
+      - name: Install dependencies
+        run: uv sync --frozen --all-groups
+
+      - name: Prepare environment
+        run: cp .env.example .env
+
+      - name: Start PostgreSQL and Redis
+        run: docker compose up -d --wait postgres redis
+
+      - name: Run migrations in the application image
+        run: docker compose run --rm migrate
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Format check
+        run: uv run ruff format --check .
+
+      - name: Type check
+        run: uv run mypy
+
+      - name: Test
+        run: uv run pytest --cov --cov-report=term-missing
+
+      - name: Verify downgrade and upgrade
+        run: |
+          docker compose run --rm migrate alembic downgrade base
+          docker compose run --rm migrate alembic upgrade head
+
+      - name: Build runtime image
+        run: docker compose build api worker
+
+      - name: Show service logs on failure
+        if: failure()
+        run: docker compose logs postgres redis
+
+      - name: Stop services
+        if: always()
+        run: docker compose down -v
