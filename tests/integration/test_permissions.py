@@ -38,7 +38,7 @@ async def test_application_objects_are_owned_by_app_owner(
                       FROM pg_class c
                       JOIN pg_namespace n ON n.oid = c.relnamespace
                       JOIN pg_roles r ON r.oid = c.relowner
-                     WHERE n.nspname IN ('app', 'control')
+                     WHERE n.nspname IN ('app', 'app_meta', 'control')
                        AND c.relkind IN ('r', 'p', 'v', 'm', 'S')
                     """
                 )

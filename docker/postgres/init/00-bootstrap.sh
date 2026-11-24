@@ -42,6 +42,9 @@ WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'app_control') \gexec
 GRANT app_owner TO app_migrator;
 SELECT format('GRANT CREATE, CONNECT, TEMPORARY ON DATABASE %I TO app_owner', :'db_name') \gexec
 
+CREATE SCHEMA IF NOT EXISTS app_meta AUTHORIZATION app_owner;
+REVOKE ALL ON SCHEMA app_meta FROM PUBLIC;
+
 SELECT format('CREATE ROLE %I LOGIN INHERIT', :'migrator_user')
 WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'migrator_user') \gexec
 SELECT format('ALTER ROLE %I PASSWORD %L', :'migrator_user', :'migrator_password') \gexec
