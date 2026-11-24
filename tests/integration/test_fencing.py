@@ -40,8 +40,9 @@ async def test_progress_updates_validate_execution_attempt_step_and_checkpoint_a
                     """
                     SELECT control.apply_execution_progress(
                         :execution_id, :attempt_id, :worker_id, :stale_fence,
-                        :step_id, 0, 'MODEL', 'SUCCEEDED', '{}'::jsonb,
-                        '{"answer":1}'::jsonb, 'step-0', '{"next":1}'::jsonb
+                        :step_id, 0, 'MODEL', 'SUCCEEDED',
+                        CAST(:step_input AS jsonb), CAST(:step_output AS jsonb),
+                        'step-0', CAST(:checkpoint AS jsonb)
                     )
                     """
                 ),
@@ -51,6 +52,9 @@ async def test_progress_updates_validate_execution_attempt_step_and_checkpoint_a
                     "worker_id": worker_id,
                     "stale_fence": claim.fencing_token - 1,
                     "step_id": step_id,
+                    "step_input": "{}",
+                    "step_output": '{"answer":1}',
+                    "checkpoint": '{"next":1}',
                 },
             )
 
@@ -73,8 +77,9 @@ async def test_progress_updates_validate_execution_attempt_step_and_checkpoint_a
                 """
                 SELECT control.apply_execution_progress(
                     :execution_id, :attempt_id, :worker_id, :fence,
-                    :step_id, 0, 'MODEL', 'SUCCEEDED', '{}'::jsonb,
-                    '{"answer":1}'::jsonb, 'step-0', '{"next":1}'::jsonb
+                    :step_id, 0, 'MODEL', 'SUCCEEDED',
+                    CAST(:step_input AS jsonb), CAST(:step_output AS jsonb),
+                    'step-0', CAST(:checkpoint AS jsonb)
                 )
                 """
             ),
@@ -84,6 +89,9 @@ async def test_progress_updates_validate_execution_attempt_step_and_checkpoint_a
                 "worker_id": worker_id,
                 "fence": claim.fencing_token,
                 "step_id": step_id,
+                "step_input": "{}",
+                "step_output": '{"answer":1}',
+                "checkpoint": '{"next":1}',
             },
         )
 
