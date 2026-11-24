@@ -13,21 +13,21 @@ def required_env(name: str) -> str:
     return value
 
 
-@pytest_asyncio.fixture(scope="session")
+@pytest_asyncio.fixture
 async def admin_engine() -> AsyncIterator[AsyncEngine]:
     engine = create_async_engine(required_env("TEST_ADMIN_DATABASE_URL"))
     yield engine
     await engine.dispose()
 
 
-@pytest_asyncio.fixture(scope="session")
+@pytest_asyncio.fixture
 async def api_engine() -> AsyncIterator[AsyncEngine]:
     engine = create_async_engine(required_env("TEST_API_DATABASE_URL"))
     yield engine
     await engine.dispose()
 
 
-@pytest_asyncio.fixture(scope="session")
+@pytest_asyncio.fixture
 async def worker_engine() -> AsyncIterator[AsyncEngine]:
     engine = create_async_engine(required_env("TEST_WORKER_DATABASE_URL"))
     yield engine
