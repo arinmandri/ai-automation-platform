@@ -882,10 +882,16 @@ ALTER DEFAULT PRIVILEGES FOR ROLE app_owner IN SCHEMA control
 """
 
 
+def execute_script(script: str) -> None:
+    """Execute a PostgreSQL script through asyncpg's simple-query protocol."""
+    adapted_connection = op.get_bind().connection
+    adapted_connection.run_async(lambda driver: driver.execute(script))
+
+
 def upgrade() -> None:
-    op.execute(SCHEMA_SQL)
-    op.execute(FENCING_SQL)
-    op.execute(PRIVILEGES_SQL)
+    execute_script(SCHEMA_SQL)
+    execute_script(FENCING_SQL)
+    execute_script(PRIVILEGES_SQL)
 
 
 def downgrade() -> None:
